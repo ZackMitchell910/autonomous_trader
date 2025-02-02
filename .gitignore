@@ -1,2 +1,8 @@
-"venv/" 
-"venv/" 
+venv/  
+__pycache__/  
+.env  
+*.log  
+*.pyc  
+*.pyo  
+*.pyd  
+.DS_Store 
