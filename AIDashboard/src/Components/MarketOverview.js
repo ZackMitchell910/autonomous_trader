@@ -1,4 +1,3 @@
-// src/components/MarketOverview.js
 import React from 'react';
 import { Line } from 'react-chartjs-2';
 import {
@@ -44,10 +43,8 @@ const MarketOverview = ({ tier }) => {
     <div className="market-overview">
       <h2>Market Overview</h2>
       <Line data={data} options={options} />
-      {tier === 'Basic' && (
-        <p>Upgrade to Advanced or Premium for more metrics!</p>
-      )}
-      {/* Add more charts for Advanced/Premium tiers */}
+      {tier === 'Tier 1' && <p>Upgrade to Tier 2 or Tier 3 for more metrics.</p>}
+      {(tier === 'Tier 2' || tier === 'Tier 3') && <p>Advanced charts available for your tier.</p>}
     </div>
   );
 };

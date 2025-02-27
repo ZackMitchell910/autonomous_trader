@@ -1,4 +1,3 @@
-// src/App.js
 import React, { useState, useEffect } from 'react';
 import WalletConnector from './components/WalletConnector';
 import TopBar from './components/TopBar';
@@ -12,30 +11,35 @@ import './App.css';
 
 const App = () => {
   const [publicKey, setPublicKey] = useState(null);
-  const [sparkBalance, setSparkBalance] = useState(BigInt(0));
-  const [tier, setTier] = useState('Basic');
+  const [sparkBalanceSmallestUnit, setSparkBalanceSmallestUnit] = useState(BigInt(0));
+  const [sparkBalance, setSparkBalance] = useState(0);
+  const [tier, setTier] = useState('None');
   const [section, setSection] = useState('Home');
   const [decimals, setDecimals] = useState(null);
 
-  // Fetch token decimals once on app load
   useEffect(() => {
     const fetchDecimals = async () => {
-      const connection = new Connection('https://api.mainnet-beta.solana.com');
-      const mintAddress = new PublicKey('53mTqqc1GFKiLdG9eM282FYFde6muDxqa5mppGEmC8Rm');
-      const mintInfo = await getMint(connection, mintAddress);
-      setDecimals(mintInfo.decimals);
+      try {
+        const connection = new Connection('https://api.mainnet-beta.solana.com');
+        const mintAddress = new PublicKey('53mTqqc1GFKiLdG9eM282FYFde6muDxqa5mppGEmC8Rm');
+        const mintInfo = await getMint(connection, mintAddress);
+        setDecimals(mintInfo.decimals);
+      } catch (err) {
+        console.error('Error fetching decimals:', err);
+        setDecimals(9); // Fallback to common decimal value
+      }
     };
     fetchDecimals();
   }, []);
 
-  // Fetch balance and determine tier when publicKey or decimals change
   useEffect(() => {
     if (publicKey && decimals !== null) {
       getSparkBalance(publicKey).then((balance) => {
-        setSparkBalance(balance);
-        const userTier = determineTier(balance, decimals);
-        setTier(userTier);
-      });
+        setSparkBalanceSmallestUnit(balance);
+        const wholeTokens = balance / (BigInt(10) ** BigInt(decimals));
+        setSparkBalance(wholeTokens.toString());
+        setTier(determineTier(wholeTokens));
+      }).catch(err => console.error('Balance fetch error:', err));
     }
   }, [publicKey, decimals]);
 
@@ -47,7 +51,7 @@ const App = () => {
         </div>
       ) : (
         <>
-          <TopBar publicKey={publicKey} sparkBalance={sparkBalance} tier={tier} decimals={decimals} />
+          <TopBar publicKey={publicKey} sparkBalance={sparkBalance} tier={tier} />
           <div className="dashboard">
             <Sidebar setSection={setSection} />
             <MainArea section={section} tier={tier} />
