@@ -19,6 +19,17 @@ from bot import main_bot
 from utils import send_telegram_message
 from sentiment_manager import SentimentManager
 from x_scraper import start_twitter_stream
+# app/main.py
+@app.post("/start_trader")
+async def start_trader(settings: dict, user: User = Depends(get_current_user)):
+    # Start Celery task (see Step 4)
+    task = run_trader.delay(user.dict(), settings)
+    return {"task_id": task.id}
+
+@app.get("/trading_history")
+async def get_trading_history(user: User = Depends(get_current_user)):
+    # Fetch from database
+    return {"history": user.trading_history}
 
 def tweet_consumer_loop(tweet_queue, sentiment_manager):
     """
@@ -64,8 +75,8 @@ def ai_trading_loop(model, product_ids, sentiment_manager):
                 if amount <= 0:
                     continue
                 if currency == "USD":
-                    usd_balance += amount * 100
-                    total_usd_value += amount * 100
+                    usd_balance += amount 
+                    total_usd_value += amount
                 else:
                     pid = f"{currency}-USD"
                     if pid in product_ids:
